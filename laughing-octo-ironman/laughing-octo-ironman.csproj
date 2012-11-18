@@ -21,7 +21,7 @@
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x86</PlatformTarget>
     <Externalconsole>True</Externalconsole>
-    <Commandlineparameters>rfc340.txt ../../../sample.xml 765432 ../../../destination</Commandlineparameters>
+    <Commandlineparameters>"/Users/andrewrondeau/Syncplicity/Coding Challenge/Edgar Allen Poe.txt" "/Users/andrewrondeau/Syncplicity/Coding Challenge/template.xhtml" 987534 "/Users/andrewrondeau/Syncplicity/Coding Challenge/generated xml"</Commandlineparameters>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <DebugType>none</DebugType>
