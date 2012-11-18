@@ -11,7 +11,7 @@ namespace laughingoctoironman
 
 			var id = new byte[32];
 			random.NextBytes(id);
-			this.id = Convert.ToBase64String(id);
+			this.id = BitConverter.ToString(id);
 		}
 
 		/// <summary>

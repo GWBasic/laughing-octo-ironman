@@ -37,6 +37,7 @@ Usage: laughing-octo-ironman [text file] [template xml] [seed] [destination]
 			{
 				var textFilePath = args[0];
 				var templateXmlPath = Path.GetFullPath(args[1]);
+				var extension = Path.GetExtension(templateXmlPath);
 				var seedText = args[2];
 				var destinationPath = Path.GetFullPath(args[3]);
 
@@ -61,7 +62,7 @@ Usage: laughing-octo-ironman [text file] [template xml] [seed] [destination]
 				{
 					var line = new Line(
 						number: ctr,
-						contents: textFile[ctr],
+						contents: textFile[ctr].Replace("\r", string.Empty).Replace("\n", string.Empty),
 						random: random);
 
 					lines[ctr] = line;
@@ -74,10 +75,31 @@ Usage: laughing-octo-ironman [text file] [template xml] [seed] [destination]
 				var lineNumberNode = GetNode("@line_number@", templateXml.ChildNodes);
 				var idNodes = GetNodes("@id@", templateXml.ChildNodes).ToArray();
 
-
 				if (0 == idNodes.Length)
 				{
 					throw new Exception("There are no nodes with contents @id@");
+				}
+
+				var remainingIds = new HashSet<string>[idNodes.Length];
+				for (var ctr = 0; ctr < idNodes.Length; ctr++)
+				{
+					remainingIds[ctr] = new HashSet<string>(lines.Select(line => line.Id));
+				}
+
+				foreach (var line in lines)
+				{
+					lineNode.InnerText = line.Contents;
+					lineNumberNode.InnerText = line.Number.ToString();
+
+					for (var ctr = 0; ctr < idNodes.Length; ctr++)
+					{
+						var idIndex = random.Next(0, remainingIds[ctr].Count);
+						var id = remainingIds[ctr].ElementAt(idIndex);
+						remainingIds[ctr].Remove(id);
+						idNodes[ctr].InnerText = id;
+					}
+
+					templateXml.Save(Path.Combine(destinationPath, line.Id + extension));
 				}
 			}
 			catch (Exception e)
