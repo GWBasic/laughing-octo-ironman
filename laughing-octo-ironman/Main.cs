@@ -1,4 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Xml;
 
 namespace laughingoctoironman
 {
@@ -6,25 +10,120 @@ namespace laughingoctoironman
 	{
 		public static void Main (string[] args)
 		{
-			if (2 != args.Length)
+			if (4 != args.Length)
 			{
 				Console.WriteLine(
 @"laughing-octo-ironman: Breaks a text file up into many xml documents. Creates a nifty coding challenge!
 
-Usage: laughing-octo-ironman [text file] [template xml]
+Usage: laughing-octo-ironman [text file] [template xml] [seed] [destination]
+
      [text file]:    A text file to break up, each line will result in a new
                      xml file with links to other lines
+
      [template xml]: An xml file to use as a template. Must have a tag with
-                     its text contents @line@ for the line, and many
-                     @hashlink@ for hashes of other lines
+                     its text contents @line@ for the line, @line_number@ for
+                     the line number, and many @id@ for ids of other lines
+
+     [seed]          A seed for the random number generator
+
+     [destination]   Where to place the generated files
 
 ");
 
 				return;
 			}
 
-			var textFile = args[0];
-			var templateXml = args[1];
+			try
+			{
+				var textFilePath = args[0];
+				var templateXmlPath = Path.GetFullPath(args[1]);
+				var seedText = args[2];
+				var destinationPath = Path.GetFullPath(args[3]);
+
+				int seed;
+				try
+				{
+					seed = int.Parse(seedText);
+				}
+				catch
+				{
+					Console.WriteLine("Can not parse seed: {0}", seedText);
+					return;
+				}
+
+				var random = new Random(seed);
+
+				var textFile = File.ReadAllLines(textFilePath);
+
+				var lines = new Line[textFile.Length];
+
+				for (var ctr = 0; ctr < textFile.Length; ctr++)
+				{
+					var line = new Line(
+						number: ctr,
+						contents: textFile[ctr],
+						random: random);
+
+					lines[ctr] = line;
+				}
+
+				var templateXml = new XmlDocument();
+				templateXml.Load(templateXmlPath);
+
+				var lineNode = GetNode("@line@", templateXml.ChildNodes);
+				var lineNumberNode = GetNode("@line_number@", templateXml.ChildNodes);
+				var idNodes = GetNodes("@id@", templateXml.ChildNodes).ToArray();
+
+
+				if (0 == idNodes.Length)
+				{
+					throw new Exception("There are no nodes with contents @id@");
+				}
+			}
+			catch (Exception e)
+			{
+				var ex = e;
+
+				do
+				{
+					Console.WriteLine(ex);
+					ex = ex.InnerException;
+				} while (null != ex);
+			}
+		}
+
+		/// <summary>
+		/// Gets the node with the contents
+		/// </summary>
+		private static XmlNode GetNode(string contents, XmlNodeList nodes)
+		{
+			try
+			{
+				return GetNodes(contents, nodes).First();
+			}
+			catch
+			{
+				throw new Exception("There is no node with contents: " + contents);
+			}
+		}
+
+		/// <summary>
+		/// Gets the nodes with the contents
+		/// </summary>
+		private static IEnumerable<XmlNode> GetNodes(string contents, XmlNodeList nodes)
+		{
+			foreach (XmlNode node in nodes)
+			{
+				if (node.InnerText == contents)
+				{
+					yield return node;
+				}
+
+				foreach (var child in GetNodes(contents, node.ChildNodes))
+				{
+					yield return child;
+				}
+			}
 		}
 	}
 }
