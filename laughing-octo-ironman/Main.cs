@@ -146,7 +146,7 @@ Usage: laughing-octo-ironman [text file] [template xml] [seed] [destination]
 		{
 			foreach (XmlNode node in nodes)
 			{
-				if (node.InnerText == contents)
+				if (node.InnerText == contents && node.ChildNodes.Count == 0)
 				{
 					yield return node;
 				}
