@@ -99,7 +99,17 @@ Usage: laughing-octo-ironman [text file] [template xml] [seed] [destination]
 						idNodes[ctr].InnerText = id;
 					}
 
-					templateXml.Save(Path.Combine(destinationPath, line.Id + extension));
+					var xmlWriterSettings = new XmlWriterSettings()
+					{
+						Indent = true,
+						IndentChars = "\t",
+						NewLineChars = "\n"
+					};
+
+					using (var xmlWriter = XmlWriter.Create(Path.Combine(destinationPath, line.Id + extension), xmlWriterSettings))
+					{
+						templateXml.Save(xmlWriter);
+					}
 				}
 			}
 			catch (Exception e)
